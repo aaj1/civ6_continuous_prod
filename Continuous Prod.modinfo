@@ -2,11 +2,10 @@
 <Mod id="049dde02-909b-4ca5-a835-f305b79cf6ac" version="1">
   <Properties>
     <Name>Continuous Prod</Name>
-    <Description>descr</Description>
+    <Description>Mod for Civilization 6 that allows continuous production after certain turn to avoid mindless clicking.</Description>
     <Teaser>teaser</Teaser>
-    <Authors>Anonymous</Authors>
+    <Authors>aaj</Authors>
     <AffectsSavedGames>1</AffectsSavedGames>
-    <EnabledByDefault>1</EnabledByDefault>
     <EnabledAtStartup>1</EnabledAtStartup>
     <CompatibleVersions>1.2,2.0</CompatibleVersions>
   </Properties>
