@@ -16,6 +16,9 @@ local MAX_BEFORE_TRUNC_BOOST_MSG:number = 220;			-- Size in which boost messages
 local SIZE_ICON_CIVIC_LARGE		:number = 38;
 local SIZE_ICON_RESEARCH_LARGE	:number = 38;
 local MAX_ICONS_BEFORE_OVERFLOW	:number = 6;
+IGNORE_POPUPS_TURN = 100;
+IGNORE_CIVIC_HASH = 1024022293; -- future civic
+IGNORE_TECH_HASH = -241112393; -- future tech
 
 -- ===========================================================================
 --	MEMBERS
@@ -107,7 +110,7 @@ function GetUnlockIcon( typeName :string )
 		if(typeInfo.Kind == "KIND_POLICY") then
 			local policy = GameInfo.Policies[typeName];
 			local slotType = policy and policy.GovernmentSlotType or nil;
-					
+
 			if(slotType == "SLOT_MILITARY" ) then
 				icon = "ICON_TECHUNLOCK_10";
 			elseif(slotType == "SLOT_DIPLOMATIC" ) then
@@ -139,7 +142,7 @@ function GetUnlockIcon( typeName :string )
 			end
 		end
 	end
-	
+
 	return icon;
 end
 
@@ -149,7 +152,7 @@ end
 function GetGovernmentData()
 	if m_kGovernmentData == nil or table.count(m_kGovernmentData)==0 then
 		m_kGovernmentData = {};
-		for row in GameInfo.Governments() do			
+		for row in GameInfo.Governments() do
 			local governmentType	:string = row.GovernmentType;
 			local slotMilitary		:number = 0;
 			local slotEconomic		:number = 0;
@@ -157,7 +160,7 @@ function GetGovernmentData()
 			local slotWildcard		:number = 0;
 			for entry in GameInfo.Government_SlotCounts() do
 				if (governmentType == entry.GovernmentType) then
-					local slotType = entry.GovernmentSlotType;				
+					local slotType = entry.GovernmentSlotType;
 					if(slotType == "SLOT_MILITARY") then slotMilitary = slotMilitary + entry.NumSlots;
 					elseif(slotType == "SLOT_ECONOMIC") then slotEconomic = slotEconomic + entry.NumSlots;
 					elseif(slotType == "SLOT_DIPLOMATIC") then slotDiplomatic = slotDiplomatic + entry.NumSlots;
@@ -176,7 +179,7 @@ function GetGovernmentData()
 		end
 	end
 
-	return m_kGovernmentData;	
+	return m_kGovernmentData;
 end
 
 function ResetOverflowArrow( kItemInstance:table )
@@ -211,7 +214,7 @@ function HandleOverflow( numUnlockables:number, kItemInstance:table, numMaxVisib
 	if numUnlockables <= numMaxVisible then
 		return;
 	end
-	
+
 	local unlockables :table = kItemInstance.UnlockStack:GetChildren();
 	-- Stack may contain hidden controls due to InstanceManager use.
 	-- Luckily, they should all be pushed to the back of the list due to reparenting.
@@ -220,7 +223,7 @@ function HandleOverflow( numUnlockables:number, kItemInstance:table, numMaxVisib
 
 	kItemInstance.UnlockPageTurner:SetHide(false);
 	kItemInstance.UnlockPageTurner:RegisterCallback( Mouse.eLClick, function() OnOverflowArrowPressed(kItemInstance, nUnlockableOffset); end);
-	
+
 	for i=nUnlockableOffset+numMaxPerPage+1, #unlockables, 1 do
 		unlockables[i]:SetHide(true);
 	end
@@ -244,14 +247,14 @@ function PopulateUnlockablesForCivic(playerID:number, civicID:number, kItemIM:ta
 	-- Unlockables is an array of {type, name}
 	local numIcons:number = 0;
 	local unlockables = GetUnlockablesForCivic_Cached(civicType, playerID);
-	
+
 	if(unlockables and #unlockables > 0) then
 		for i,v in ipairs(unlockables) do
 
 			local typeName = v[1];
 			local civilopediaKey = v[3];
 			local typeInfo = GameInfo.Types[typeName];
-		
+
 			if(kGovernmentIM and typeInfo and typeInfo.Kind == "KIND_GOVERNMENT") then
 
 				local unlock = kGovernmentIM:GetInstance();
@@ -263,21 +266,21 @@ function PopulateUnlockablesForCivic(playerID:number, civicID:number, kItemIM:ta
 					unlock.DiplomaticPolicyLabel:SetText(tostring(government.NumSlotDiplomatic));
 					unlock.WildcardPolicyLabel:SetText(tostring(government.NumSlotWildcard));
 					unlock.GovernmentName:SetText(Locale.Lookup(government.Name));
-				end	
+				end
 				local toolTip = ToolTipHelper.GetToolTip(typeName, playerID);
 				unlock.GovernmentInstanceGrid:LocalizeAndSetToolTip(toolTip);
 
 				unlock.GovernmentInstanceGrid:RegisterCallback(Mouse.eLClick, callback);
 
 				if(not IsTutorialRunning()) then
-					unlock.GovernmentInstanceGrid:RegisterCallback(Mouse.eRClick, function() 
+					unlock.GovernmentInstanceGrid:RegisterCallback(Mouse.eRClick, function()
 						LuaEvents.OpenCivilopedia(civilopediaKey);
 					end);
 				end
 			else
 				local unlockIcon = kItemIM:GetInstance();
 
-				local iconName :string = GetUnlockIcon(typeName);					
+				local iconName :string = GetUnlockIcon(typeName);
 				unlockIcon.Icon:SetHide( not unlockIcon.Icon:SetIcon("ICON_"..typeName));	-- Hide if an icon isn't found with that type.
 
 				local textureOffsetX, textureOffsetY, textureSheet = IconManager:FindIconAtlas(iconName,38);
@@ -288,15 +291,15 @@ function PopulateUnlockablesForCivic(playerID:number, civicID:number, kItemIM:ta
 				local toolTip = ToolTipHelper.GetToolTip(typeName, playerID);
 
 				unlockIcon.UnlockIcon:LocalizeAndSetToolTip(toolTip);
-			
-				if callback ~= nil then		
+
+				if callback ~= nil then
 					unlockIcon.UnlockIcon:RegisterCallback(Mouse.eLClick, callback);
 				else
 					unlockIcon.UnlockIcon:ClearCallback(Mouse.eLClick);
 				end
 
 				if(not IsTutorialRunning()) then
-					unlockIcon.UnlockIcon:RegisterCallback(Mouse.eRClick, function() 
+					unlockIcon.UnlockIcon:RegisterCallback(Mouse.eRClick, function()
 						LuaEvents.OpenCivilopedia(civilopediaKey);
 					end);
 				end
@@ -304,7 +307,7 @@ function PopulateUnlockablesForCivic(playerID:number, civicID:number, kItemIM:ta
 
 			numIcons = numIcons + 1;
 		end
-		
+
 	end
 
 	if (kCivicData.Description and hideDescriptionIcon ~= true) then
@@ -315,14 +318,14 @@ function PopulateUnlockablesForCivic(playerID:number, civicID:number, kItemIM:ta
 			unlockIcon.UnlockIcon:SetTexture(textureOffsetX, textureOffsetY, textureSheet);
 		end
 		unlockIcon.UnlockIcon:LocalizeAndSetToolTip(kCivicData.Description);
-		if callback ~= nil then		
+		if callback ~= nil then
 			unlockIcon.UnlockIcon:RegisterCallback(Mouse.eLClick, callback);
 		else
 			unlockIcon.UnlockIcon:ClearCallback(Mouse.eLClick);
 		end
 
 		if(not IsTutorialRunning()) then
-			unlockIcon.UnlockIcon:RegisterCallback(Mouse.eRClick, function() 
+			unlockIcon.UnlockIcon:RegisterCallback(Mouse.eRClick, function()
 				LuaEvents.OpenCivilopedia(civicType);
 			end);
 		end
@@ -361,10 +364,10 @@ function PopulateUnlockablesForTech(playerID:number, techID:number, instanceMana
 			local typeName	:string = v[1];
 			local civilopediaKey = v[3];
 			local unlockIcon:table	= instanceManager:GetInstance();
-			
-			local iconName :string = GetUnlockIcon(typeName);					
+
+			local iconName :string = GetUnlockIcon(typeName);
 			unlockIcon.Icon:SetHide( not unlockIcon.Icon:SetIcon("ICON_"..typeName));	-- Hide if an icon isn't found with that type.
-			 
+
 			local textureOffsetX, textureOffsetY, textureSheet = IconManager:FindIconAtlas(iconName,38);
 			if textureSheet ~= nil then
 				unlockIcon.UnlockIcon:SetTexture(textureOffsetX, textureOffsetY, textureSheet);
@@ -372,14 +375,14 @@ function PopulateUnlockablesForTech(playerID:number, techID:number, instanceMana
 
 			local toolTip :string = ToolTipHelper.GetToolTip(typeName, playerID, nil);
 			unlockIcon.UnlockIcon:LocalizeAndSetToolTip(toolTip);
-			if callback ~= nil then		
+			if callback ~= nil then
 				unlockIcon.UnlockIcon:RegisterCallback(Mouse.eLClick, callback);
 			else
 				unlockIcon.UnlockIcon:ClearCallback(Mouse.eLClick);
 			end
 
 			if(not IsTutorialRunning()) then
-				unlockIcon.UnlockIcon:RegisterCallback(Mouse.eRClick, function() 
+				unlockIcon.UnlockIcon:RegisterCallback(Mouse.eRClick, function()
 					LuaEvents.OpenCivilopedia(civilopediaKey);
 				end);
 			end
@@ -396,14 +399,14 @@ function PopulateUnlockablesForTech(playerID:number, techID:number, instanceMana
 			unlockIcon.UnlockIcon:SetTexture(textureOffsetX, textureOffsetY, textureSheet);
 		end
 		unlockIcon.UnlockIcon:LocalizeAndSetToolTip(kTechData.Description);
-		if callback ~= nil then		
+		if callback ~= nil then
 			unlockIcon.UnlockIcon:RegisterCallback(Mouse.eLClick, callback);
 		else
 			unlockIcon.UnlockIcon:ClearCallback(Mouse.eLClick);
 		end
 
 		if(not IsTutorialRunning()) then
-			unlockIcon.UnlockIcon:RegisterCallback(Mouse.eRClick, function() 
+			unlockIcon.UnlockIcon:RegisterCallback(Mouse.eRClick, function()
 				LuaEvents.OpenCivilopedia(kTechData.TechnologyType);
 			end);
 		end
@@ -449,7 +452,7 @@ end
 --	Show the meters and boost information for a given tech.
 -- ===========================================================================
 function RealizeMeterAndBoosts( kControl:table, kData:table )
-	
+
 	local progress:number = kData.Progress;
 
 	if kData.Boostable then
@@ -464,9 +467,9 @@ function RealizeMeterAndBoosts( kControl:table, kData:table )
 			local boostAmount = math.min( (kData.Progress + kData.BoostAmount ), 1.0 );
 			kControl.BoostMeter:SetPercent( boostAmount );
 		end
-		
+
 		TruncateStringWithTooltip(kControl.BoostLabel, MAX_BEFORE_TRUNC_BOOST_MSG, Locale.Lookup(kData.TriggerDesc) )
-	end	
+	end
 
 	if kData.IsLastCompleted then
 		progress = 1.0;
@@ -498,9 +501,9 @@ end
 --
 -- ===========================================================================
 function RealizeTurnsLeft( kControl:table, kData:table)
-	
+
 	local turnsLeft			:number = (kData == nil) and -1 or kData.TurnsLeft;
-	
+
 	-- The UI was only designed to show up to 3 characters in this label
 	if turnsLeft > 999 then turnsLeft = 999; end
 
@@ -534,7 +537,7 @@ end
 --	Obtain a single research/tech item.
 -- ===========================================================================
 function GetResearchData( localPlayer:number, pPlayerTechs:table, kTech:table )
-	
+
 	if kTech == nil then	-- Immediate return if there is no tech to inspect; likely first turn.
 		return nil;
 	end
@@ -549,15 +552,19 @@ function GetResearchData( localPlayer:number, pPlayerTechs:table, kTech:table )
 
 	for row in GameInfo.Boosts() do
 		if row.TechnologyType == techType then
-			isBoostable	= true;					
+			isBoostable	= true;
 			boostAmount = (row.Boost *.01 ) * researchCost;		--Convert the boost value to decimal and determine the actual boost amount.
 			triggerDesc = row.TriggerDescription;
 			break;
 		end
 	end
 
+	local turnsToBuildLeft = pPlayerTechs:GetTurnsToResearch(iTech);
+	if Game.GetCurrentGameTurn() >= IGNORE_POPUPS_TURN and kTech.Hash == IGNORE_TECH_HASH then
+		turnsToBuildLeft = 999;
+	end
 	local kData :table = {
-		ID				= iTech, 
+		ID				= iTech,
 		Boostable		= isBoostable,
 		BoostAmount		= boostAmount / researchCost,
 		BoostTriggered	= pPlayerTechs:HasBoostBeenTriggered(iTech),
@@ -571,9 +578,9 @@ function GetResearchData( localPlayer:number, pPlayerTechs:table, kTech:table )
 		TechType		= techType,
 		ToolTip			= ToolTipHelper.GetToolTip( techType, localPlayer ),
 		TriggerDesc		= triggerDesc,
-		TurnsLeft		= pPlayerTechs:GetTurnsToResearch(iTech)
+		TurnsLeft		= turnsToBuildLeft
 	};
-			
+
 	return kData;
 end
 
@@ -606,8 +613,8 @@ function RealizeCurrentResearch( playerID:number, kData:table, kControl:table )
 		end
 
 		kControl.MainPanel:RegisterMouseEnterCallback(		function() kControl.MainGearAnim:Play(); end);
-		kControl.MainPanel:RegisterMouseExitCallback(		function() kControl.MainGearAnim:Stop(); end);				
-		
+		kControl.MainPanel:RegisterMouseExitCallback(		function() kControl.MainGearAnim:Stop(); end);
+
 		RealizeMeterAndBoosts( kControl, kData );
 		RealizeIcon( kControl.Icon, kData.TechType, SIZE_ICON_RESEARCH_LARGE );
 
@@ -640,7 +647,7 @@ function RealizeCurrentResearch( playerID:number, kData:table, kControl:table )
 		isNonActive = true;
 	end
 
-	RealizeTurnsLeft( kControl, kData );	
+	RealizeTurnsLeft( kControl, kData );
 	kControl.TitleButton:SetHide( isNonActive );
 	kControl.Icon:SetHide( isNonActive );
 end
@@ -655,8 +662,8 @@ function GetCivicData( localPlayer:number, pPlayerCulture:table, kCivic:table )
 	if kCivic == nil then	-- Immediate return if there is no tech to inspect; likely first turn.
 		return nil;
 	end
-	
-	local iCivic		:number = kCivic.Index;			
+
+	local iCivic		:number = kCivic.Index;
 	local isBoostable	:boolean = false;
 	local boostAmount	:number = 0;
 	local isRepeatable	:boolean = kCivic.Repeatable;
@@ -666,15 +673,19 @@ function GetCivicData( localPlayer:number, pPlayerCulture:table, kCivic:table )
 
 	for row in GameInfo.Boosts() do
 		if row.CivicType == civicType then
-			isBoostable	= true;					
+			isBoostable	= true;
 			boostAmount = (row.Boost *.01 ) * progressCost;		--Convert the boost value to decimal and determine the actual boost amount.
 			triggerDesc = row.TriggerDescription;
 			break;
 		end
 	end
 
+	local turnsToBuildLeft = pPlayerCulture:GetTurnsToProgressCivic(iCivic);
+	if Game.GetCurrentGameTurn() >= IGNORE_POPUPS_TURN and kCivic.Hash == IGNORE_TECH_HASH then
+		turnsToBuildLeft = 999;
+	end
 	local kData :table = {
-		ID				= iCivic, 
+		ID				= iCivic,
 		Boostable		= isBoostable,
 		BoostAmount		= boostAmount / progressCost,
 		BoostTriggered	= pPlayerCulture:HasBoostBeenTriggered(iCivic),
@@ -688,7 +699,7 @@ function GetCivicData( localPlayer:number, pPlayerCulture:table, kCivic:table )
 		CivicType		= civicType,
 		ToolTip			= ToolTipHelper.GetToolTip( civicType, localPlayer ),
 		TriggerDesc		= triggerDesc,
-		TurnsLeft		= pPlayerCulture:GetTurnsToProgressCivic(iCivic)
+		TurnsLeft		= turnsToBuildLeft
 	};
 
 	return kData;
@@ -713,7 +724,7 @@ function RealizeCurrentCivic( playerID:number, kData:table, kControl:table, cach
 
 	local isNonActive:boolean = false;
 	local unlockIM:table = GetUnlockIM( kControl );	-- Use this context's "Controls" table for the currnet IM
-	
+
 
 	if kData ~= nil then
 		local techType:string = kData.CivicType;
@@ -726,9 +737,9 @@ function RealizeCurrentCivic( playerID:number, kData:table, kControl:table, cach
 
 		kControl.MainPanel:RegisterMouseEnterCallback(	function() kControl.MainGearAnim:Play(); end);
 		kControl.MainPanel:RegisterMouseExitCallback(	function() kControl.MainGearAnim:Stop(); end);
-		
+
 		RealizeMeterAndBoosts( kControl, kData );
-		RealizeIcon( kControl.Icon, kData.CivicType, SIZE_ICON_CIVIC_LARGE );		
+		RealizeIcon( kControl.Icon, kData.CivicType, SIZE_ICON_CIVIC_LARGE );
 
 		-- Include extra icons in total unlocks
 		local extraUnlocks:table = {};
@@ -751,7 +762,7 @@ function RealizeCurrentCivic( playerID:number, kData:table, kControl:table, cach
 			tUnlock.IconData:Initialize(kControl.UnlockStack, tUnlock.ModifierTable);
 			numUnlockables = numUnlockables + 1;
 		end
-		
+
 		HandleOverflow(numUnlockables, kControl, MAX_ICONS_BEFORE_OVERFLOW, MAX_ICONS_BEFORE_OVERFLOW-1);
 
 		-- Show/Hide Recommended Icon
@@ -798,7 +809,7 @@ function TechAndCivicSupport_BuildCivicModifierCache()
 		-- ModifierValue should be changed into an array if we must track multiple args per modifier.
 		tModCache[tModArgs.ModifierId].ModifierValue = tModArgs.Value;
 	end
-	
+
 	-- Collect modifiers used by civics
 	local tCache :table = {}; -- strCivicType -> Array of Modifiers
 	for tCivicMod:table in GameInfo.CivicModifiers() do
@@ -807,7 +818,7 @@ function TechAndCivicSupport_BuildCivicModifierCache()
 			tCivicCache = {};
 			tCache[tCivicMod.CivicType] = tCivicCache;
 		end
-		
+
 		local tModInfo :table = tModCache[tCivicMod.ModifierId];
 		assert( tModInfo );
 		table.insert( tCivicCache, tModInfo );
