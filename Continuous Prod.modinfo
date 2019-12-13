@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Mod id="049dde02-909b-4ca5-a835-f305b79cf6ac" version="1">
+<Mod id="9c6c0c28-e95f-4496-a110-7418da6c5835" version="1">
   <Properties>
     <Name>Continuous Prod</Name>
     <Description>Mod for Civilization 6 that allows continuous production after certain turn to avoid mindless clicking.</Description>
