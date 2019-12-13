@@ -16,7 +16,7 @@ local MAX_BEFORE_TRUNC_BOOST_MSG:number = 220;			-- Size in which boost messages
 local SIZE_ICON_CIVIC_LARGE		:number = 38;
 local SIZE_ICON_RESEARCH_LARGE	:number = 38;
 local MAX_ICONS_BEFORE_OVERFLOW	:number = 6;
-IGNORE_POPUPS_TURN = 100;
+IGNORE_POPUPS_TURN = 300;
 IGNORE_CIVIC_HASH = 1024022293; -- future civic
 IGNORE_TECH_HASH = -241112393; -- future tech
 
